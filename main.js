@@ -168,7 +168,7 @@ function animateCups() {
 
             // Calculate the midpoint of the two cups
             let midX = (positions[cupToSwitch1] + positions[cupToSwitch2]) / 2;
-            let radius = Math.abs(positions[cupToSwitch1] - positions[cupToSwitch2]) / 2;
+            let radius = (positions[cupToSwitch1] - positions[cupToSwitch2]) / 2;
 
             // Calculate new positions along the circular path
             let newX1 = midX + Math.cos(angle) * radius;
