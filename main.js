@@ -9,10 +9,12 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Water } from "three/examples/jsm/objects/Water.js";
 import { Sky } from "three/examples/jsm/objects/Sky.js";
 import { SceneUtils } from "three/examples/jsm/Addons";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 let container, stats;
 let camera, scene, renderer;
 let controls, water, sun, mesh;
+let jojo_model=false;
 
 init();
 animate();
@@ -116,11 +118,36 @@ function init() {
   // Adding Middle Box
 
   const geometry = new THREE.BoxGeometry(30, 30, 30);
-  const material = new THREE.MeshStandardMaterial({ roughness: 0 });
+  const material = new THREE.MeshStandardMaterial({
+    roughness: 0,
+    side: THREE.DoubleSide,
+  });
 
   mesh = new THREE.Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
   scene.add(mesh);
 
+  //adding jotaro stuff
+
+  const loader = new GLTFLoader();
+
+  loader.load(
+    "./models/jojo_st.glb",
+    function (gltf) {
+      gltf.scene.scale.set(0.4, 0.4, 0.4);
+      gltf.scene.position.set(0, 1, 0);
+      gltf.scene.castShadow=true;
+      gltf.scene.receiveShadow=true;
+
+      scene.add(gltf.scene);
+      jojo_model = gltf.scene;
+    },
+    undefined,
+    function (error) {
+      console.error(error);
+    }
+  );
   // Orbit Controls
 
   controls = new OrbitControls(camera, renderer.domElement);
@@ -151,14 +178,15 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function animate() {
+function animate(time) {
   requestAnimationFrame(animate);
+  if (jojo_model) jojo_model.rotation.y += 0.01;
   render();
   stats.update();
 }
 
 function render() {
-  water.material.uniforms["time"].value += 10.0 / 60.0;
+  water.material.uniforms["time"].value += 10.0 / 600.0;
   renderer.render(scene, camera);
 }
 
@@ -196,6 +224,7 @@ function renderCup() {
   const cupBodyMaterialTexture = new THREE.MeshBasicMaterial({
     map: cupTexture,
     transparent: true,
+    castShadow: true,
   });
   cupBodyMaterialTexture.name = "cupBodyTexture";
 
