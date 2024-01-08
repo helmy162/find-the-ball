@@ -231,7 +231,6 @@ function renderCup() {
   const cupBodyMaterial = new THREE.MeshBasicMaterial({
     color: 0xffffff,
     side: THREE.DoubleSide,
-    overdraw: 0.5,
   });
   cupBodyMaterial.name = "cupBodyMaterial";
 
@@ -240,7 +239,6 @@ function renderCup() {
   const cupBodyMaterialTexture = new THREE.MeshBasicMaterial({
     map: cupTexture,
     transparent: true,
-    castShadow: true,
   });
   cupBodyMaterialTexture.name = "cupBodyTexture";
 
@@ -256,25 +254,6 @@ function renderCup() {
   cupBodyMesh.name = "cupBody";
   cup.add(cupBodyMesh);
 
-  /*****************************************************
-   *   TOP                                             *
-   *****************************************************/
-
-  const cupTopGeometry = new THREE.TorusGeometry(1.29, 0.06, 0.16, 62);
-  const cupTopMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    roughness: 0.5,
-    metalness: 0.5,
-    emissive: 0xc4c4c4,
-    overdraw: true,
-  });
-
-  const cupTop = new THREE.Mesh(cupTopGeometry, cupTopMaterial);
-  cupTop.name = "cupTop";
-  cupTop.position.set(0, 1.25, 0);
-  cupTop.rotation.x = Math.PI / 2;
-
-  cup.add(cupTop);
 
   /*****************************************************
    *   BOTTOM                                             *
@@ -284,7 +263,6 @@ function renderCup() {
   const cupBottomMaterial = new THREE.MeshBasicMaterial({
     color: 0xc8cbcf,
     side: THREE.DoubleSide,
-    overdraw: 0.5,
   });
 
   const cupBottomMesh = new THREE.Mesh(cupBottomGeometry, cupBottomMaterial);
