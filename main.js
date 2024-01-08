@@ -17,18 +17,35 @@ let jojo_model=false;
 const loader = new GLTFLoader();
 
 let clouds = [];
-class cloud {
-  constructor(x, y, z,scale,target) {
-    loader.load("./models/cloud.glb", (gltf) => {
-      scene.add(gltf.scene);  
-      clouds.push(gltf.scene);
-      gltf.scene.scale.set(scale,scale,scale);
-      gltf.scene.position.set(x, y, z);
+class Cloud {
+  constructor(x, y, z, scale, target) {
+    this.model = null;
 
-  
+    loader.load("./models/cloud.glb", (gltf) => {
+      this.model = gltf.scene;
+      scene.add(this.model);  
+      clouds.push(gltf.scene);
+      this.model.scale.set(scale, scale, scale);
+      this.model.position.set(x, y, z);
+
+      this.changeColor(0xFFFFFF);
     });
   }
+
+  changeColor(colorValue) {
+    if (this.model) {
+      this.model.traverse((o) => {
+        if (o.isMesh) {
+          const newMaterial = new THREE.MeshStandardMaterial({ color: colorValue });
+          o.material = newMaterial;
+        }
+      });
+    }
+  }
 }
+
+// Usage
+
 
 init();
 animate();
@@ -324,12 +341,12 @@ gameInit();
 
 // generateClouds function
 function generateClouds(){
-  for(let i = 0; i < 30; i++){
+  for(let i = 0; i < 8; i++){
     let x = Math.random() * 500 - 250;
-    let y = Math.random() * 200 + 50;  
+    let y = Math.random() * 30 + 150;  
     let z = Math.random() * 500 - 250;
-    const scale = Math.random() * 1 + 1;
-    const single_cloud = new cloud(x,y,z,scale);
+    const scale = Math.random() * 10 + 2;
+    const single_cloud = new Cloud(x,y,z,scale);
   } 
 }
 // animateClouds function
