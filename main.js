@@ -15,6 +15,21 @@ let container, stats;
 let camera, scene, renderer;
 let controls, water, sun, mesh;
 let jojo_model=false;
+const loader = new GLTFLoader();
+
+let clouds = [];
+class cloud {
+  constructor(x, y, z,scale,target) {
+    loader.load("./models/cloud.glb", (gltf) => {
+      scene.add(gltf.scene);  
+      clouds.push(gltf.scene);
+      gltf.scene.scale.set(scale,scale,scale);
+      gltf.scene.position.set(x, y, z);
+
+  
+    });
+  }
+}
 
 init();
 animate();
@@ -130,7 +145,7 @@ function init() {
 
   //adding jotaro stuff
 
-  const loader = new GLTFLoader();
+
 
   loader.load(
     "./models/jojo_st.glb",
@@ -183,6 +198,7 @@ function animate(time) {
   if (jojo_model) jojo_model.rotation.y += 0.01;
   render();
   stats.update();
+  animateClouds();
 }
 
 function render() {
@@ -327,6 +343,35 @@ function gameInit() {
 }
 
 gameInit();
+
+
+// generateClouds function
+function generateClouds(){
+  for(let i = 0; i < 30; i++){
+    let x = Math.random() * 500 - 250;
+    let y = Math.random() * 200 + 50;  
+    let z = Math.random() * 500 - 250;
+    const scale = Math.random() * 1 + 1;
+    const single_cloud = new cloud(x,y,z,scale);
+  } 
+}
+// animateClouds function
+function animateClouds() {
+  clouds.forEach((cloud) => {
+    cloud.position.x += 0.1; // Adjust the speed of cloud movement
+    // Implement additional movement in other axes for a more natural effect
+
+    // Reset cloud position when it goes beyond a certain limit to create a looping effect
+    if (cloud.position.x > 250) {
+      cloud.position.x = -250;
+      // Implement similar checks and repositioning for other axes if needed
+    }
+  });
+}
+generateClouds();
+
+
+
 let positions = [-8, 0, 8]; // Left, Middle, Right positions on the X-axis
 let isSwitching = false;
 let switchDuration = 1000; // Duration of the switch in milliseconds
