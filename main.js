@@ -5,10 +5,9 @@ import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Water } from "three/examples/jsm/objects/Water.js";
 import { Sky } from "three/examples/jsm/objects/Sky.js";
-import { SceneUtils } from "three/examples/jsm/Addons";
+import { OrbitControls, SceneUtils } from "three/examples/jsm/Addons";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 let container, stats;
@@ -515,16 +514,26 @@ const rayCaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 function positionToIndex(position) {
-  return position == 2 ? 2 : position == 0 ? 1 : 0;
+  return position == 8 ? 2 : position == 0 ? 1 : 0;
 }
 
 document.addEventListener("click", function (e) {
+  if(isSwitching || ballRevealed) return;
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
   rayCaster.setFromCamera(mouse, camera);
-  let clickCupPosition = Math.round(
-    rayCaster.intersectObjects(cups)[0].object.position.x
-  );
+
+  const intersects = rayCaster.intersectObjects( cups );
+
+  if (intersects.length == 0) return;
+
+  const cup = intersects[0].object.type == "Mesh" ?
+              intersects[0].object.parent.parent :
+              intersects[0].object.name == "cupBody" ?
+              intersects[0].object.parent :
+              intersects[0].object;
+      
+  let clickCupPosition = Math.round(cup.position.x);
   let clickedCupIndex = positionToIndex(clickCupPosition);
   console.log(clickedCupIndex);
   const isCorrect = checkGuess(clickedCupIndex);
