@@ -50,15 +50,14 @@ const cups = [];
 for (let i = 0; i < 3; i++) {
   const cup = new THREE.Mesh(cupGeometry, cupMaterial);
   cup.position.x = i * 2 - 2;
+  cup.position.y = 0.5; // half the height of the cup
   scene.add(cup);
   cups.push(cup);
 }
-function reset_cups() {
-  for (let i = 0; i < 3; i++) 
-    cups[i].position.x = i * 2 - 2;
-}
+
 // Create mesh for the ball
 const ball = new THREE.Mesh(ballGeometry, ballMaterial);
+ball.position.y = 0.2; // half the height of the ball (radius)
 scene.add(ball);
 
 // Update renderer settings
@@ -83,14 +82,12 @@ const groundMaterial = new THREE.MeshPhongMaterial({
 
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2; // Rotate to lay flat
-ground.position.y = -1; // Lower it below the cups and ball
+ground.position.y = 0; // Lower it below the cups and ball
 ground.receiveShadow = true; // Enable shadow reception
 
 scene.add(ground);
 
-let winningCup = 0;
 let positions = [-2, 0, 2]; // Left, Middle, Right positions on the X-axis
-let shuffleSpeed = 0.05; // Speed of the switch animation
 let isSwitching = false;
 let switchDuration = 1000; // Duration of the switch in milliseconds
 let switchStartTime;
@@ -104,51 +101,67 @@ let revealHeight = 1; // Height to lift the cups
 let ballRevealed = false;
 
 let ballUnderCupIndex = 1; // Index of the cup hiding the ball
+let winningCupIndex = 1; // Index of the cup the user guesses
+ball.position.x = 0;
 
-function resetVars() {
-  positions = [-2, 0, 2];
-  ballUnderCupIndex = 1;
-  ball.position.x = 0;
-  reset_cups()
+let revealStartTime, revealEndTime;
+let isRevealing = false;
 
-}
-// Function to reveal the ball
 function revealBall() {
-  //reset all values
-  resetVars();
   ballRevealed = true;
-  cups.forEach((cup) => {
-    cup.position.y = revealHeight;
-  });
+  isRevealing = true;
+  revealStartTime = Date.now();
 
-  // After revealDuration, lower the cups and start switching
-  setTimeout(() => {
+  // Start the reveal animation
+  requestAnimationFrame(animateReveal);
+}
+
+function animateReveal() {
+  let currentTime = Date.now();
+  let deltaTime = currentTime - revealStartTime;
+
+  if (deltaTime < revealDuration) {
+    let fraction = deltaTime / revealDuration;
+    let currentHeight = 0.5 + fraction * revealHeight;
+
     cups.forEach((cup) => {
-      cup.position.y = 0;
+      cup.position.y = currentHeight;
     });
+
+    requestAnimationFrame(animateReveal);
+  } else {
+    revealEndTime = Date.now();
+    // Finish the reveal and start the switch
+    finishReveal();
+  }
+}
+
+function finishReveal() {
+  let currentTime = Date.now();
+  let deltaTime = currentTime - revealEndTime;
+
+  if (deltaTime < revealDuration) {
+    let fraction = deltaTime / revealDuration;
+    let currentHeight = revealHeight + 0.5 - fraction * revealHeight;
+
+    cups.forEach((cup) => {
+      cup.position.y = currentHeight;
+    });
+
+    requestAnimationFrame(finishReveal);
+  } else {
     ballRevealed = false;
+    isRevealing = false;
 
     // Start the switching sequence after lowering the cups
     generateSwitches();
     startNextSwitch();
-  }, revealDuration);
+  }
 }
 
 // Start the game by revealing the ball
 revealBall();
 
-function setWinningCup(movesArray) {
-  let finalPosition = 1;
-  movesArray.forEach((move) => {
-    if (move[0] === finalPosition) {
-      finalPosition = move[1];
-    } else if (move[1] === finalPosition) {
-      finalPosition = move[0];
-    }
-  });
-  winningCup = finalPosition;
-  console.log(winningCup);
-}
 // Function to generate a series of random switches
 function generateSwitches() {
   for (let i = 0; i < numberOfSwitches; i++) {
@@ -160,7 +173,6 @@ function generateSwitches() {
 
     switchQueue.push([cup1, cup2]);
   }
-  setWinningCup(switchQueue);
 }
 
 // Function to start the next switch
@@ -205,18 +217,17 @@ function animateCups() {
         positions[cupToSwitch2],
         positions[cupToSwitch1],
       ];
+      winningCupIndex = positions[ballUnderCupIndex] / 2 + 1;
       startNextSwitch();
 
       // Start the next switch
     }
     // Move the ball with the cup it's under
     if (!ballRevealed) {
-      ball.material.opacity=0;
-      ball.castShadow=false
-      ball.position.x = indexToPosition(winningCup);
-      ball.position.z = 0;
+      ball.position.x = cups[ballUnderCupIndex].position.x;
+      ball.position.z = cups[ballUnderCupIndex].position.z;
+      ball.castShadow = false;
     }
-
   }
 }
 
@@ -237,7 +248,7 @@ function startSwitching() {
 
 // Function to check the user's guess
 function checkGuess(index) {
-  return index === winningCup;
+  return index === winningCupIndex;
 }
 
 const rayCaster = new THREE.Raycaster();
@@ -245,9 +256,9 @@ const mouse = new THREE.Vector2();
 
 // Call the animate function repeatedly
 function animate() {
-
-  // Update cup positions
-  animateCups();
+  if (!isRevealing) {
+    animateCups();
+  }
   rayCaster.setFromCamera(mouse, camera);
   renderer.render(scene, camera);
 }
@@ -255,9 +266,6 @@ renderer.setAnimationLoop(animate);
 
 function positionToIndex(position) {
   return position == 2 ? 2 : position == 0 ? 1 : 0;
-}
-function indexToPosition(index) {
-  return index == 2 ? 2 : index == 1 ? 0 : -2;
 }
 
 document.addEventListener("click", function (e) {
@@ -270,22 +278,22 @@ document.addEventListener("click", function (e) {
   let clickedCupIndex = positionToIndex(clickCupPosition);
   console.log(clickedCupIndex);
   const isCorrect = checkGuess(clickedCupIndex);
-  if (isCorrect) {
-      ball.material.opacity=1;
 
+  const resultElement = document.getElementById('guessResult');
+    resultElement.innerHTML = isCorrect ? "Correct!" : "Wrong Guess!";
+    resultElement.classList.add('show');
+
+    // Hide the message after a few seconds
+    setTimeout(() => {
+        resultElement.classList.remove('show');
+    }, 2000);
+    
+  if (isCorrect) {
     console.log("Correct guess!");
-    cups.forEach((cup) => {
-      cup.position.y = revealHeight;
-    });
-    setTimeout(revealBall, 1000);
+    revealBall();
   } else {
     console.log("Try again!");
-      ball.material.opacity=1;
-
-    cups.forEach((cup) => {
-      cup.position.y = revealHeight;
-    });
-    setTimeout(revealBall, 1000);
+    revealBall();
   }
 });
 
