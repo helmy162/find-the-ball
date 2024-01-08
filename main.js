@@ -1,11 +1,13 @@
+import waterNormals from "./images/waternormals.jpg"
+import cupTextureSrc from "./images/cup.jpg"
+
 import * as THREE from "three";
+import Stats from "three/examples/jsm/libs/stats.module.js";
 
-import Stats from "three/addons/libs/stats.module.js";
-
-import { GUI } from "three/addons/libs/lil-gui.module.min.js";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { Water } from "three/addons/objects/Water.js";
-import { Sky } from "three/addons/objects/Sky.js";
+import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { Water } from "three/examples/jsm/objects/Water.js";
+import { Sky } from "three/examples/jsm/objects/Sky.js";
 import { SceneUtils } from "three/examples/jsm/Addons";
 
 let container, stats;
@@ -46,12 +48,11 @@ function init() {
   // Water
 
   const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
-
   water = new Water(waterGeometry, {
     textureWidth: 512,
     textureHeight: 512,
     waterNormals: new THREE.TextureLoader().load(
-      "images/waternormals.jpg",
+      waterNormals,
       function (texture) {
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       }
@@ -190,12 +191,11 @@ function renderCup() {
   });
   cupBodyMaterial.name = "cupBodyMaterial";
 
-  const cupTexture = new THREE.TextureLoader().load("images/cup.jpg");
+  const cupTexture = new THREE.TextureLoader().load(cupTextureSrc);
 
   const cupBodyMaterialTexture = new THREE.MeshBasicMaterial({
     map: cupTexture,
     transparent: true,
-    overdraw: true,
   });
   cupBodyMaterialTexture.name = "cupBodyTexture";
 
