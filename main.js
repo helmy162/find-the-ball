@@ -19,7 +19,7 @@ let patrick, dog,grassyIsland,venom;
 let fire, man, throne, speakers;
 let jojo_model = false;
 let speakerSound;
-let initialSpeakerVolume = 1;
+let initialSpeakerVolume = 15;
 let initialBoatVolume = 1;
 let currentScore = 0
 let score = document.getElementById("score");
@@ -36,7 +36,7 @@ const clock = new THREE.Clock();
 const loadingManager = new THREE.LoadingManager(); // Loading Screen
 
 const audioParameters = {
-  speakerVolume: 1,
+  speakerVolume: 15,
   boatVolume: 1,
 };
 
@@ -119,7 +119,7 @@ class Speaker{
 
       speakerSound = new THREE.PositionalAudio(listener);
       const loader = new THREE.AudioLoader();
-      loader.load("sounds/GaldinQuay.mp3", (buffer) => {
+      loader.load("sounds/jojo.mp3", (buffer) => {
         speakerSound.setBuffer(buffer);
         speakerSound.setVolume(initialSpeakerVolume);
         speakerSound.setRefDistance(2);
