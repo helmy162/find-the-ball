@@ -10,7 +10,7 @@ import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import * as THREE from "three";
-const cupTextureSrc="images/cup_texture.jpg"
+const cupTextureSrc="images/cup.jpg"
 const waterNormals="images/waternormals.jpg"
 const root = ReactDOM.createRoot(document.getElementById("root"));
 function Test(){
