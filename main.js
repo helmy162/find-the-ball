@@ -1,5 +1,5 @@
-import waterNormals from "./images/waternormals.jpg"
-import cupTextureSrc from "./images/cup.jpg"
+import waterNormals from "./images/waternormals.jpg";
+import cupTextureSrc from "./images/cup.jpg";
 
 import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module.js";
@@ -13,38 +13,343 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 let container, stats;
 let camera, scene, renderer;
 let controls, water, sun, mesh;
-let jojo_model=false;
+let jotaro;
+let staticYacht, animatedBoat, boatSound;
+let patrick, dog,grassyIsland,venom;
+let fire, man, throne, speakers;
+let jojo_model = false;
+let speakerSound;
+let initialSpeakerVolume = 1;
+let initialBoatVolume = 1;
+let currentScore = 0
+let score = document.getElementById("score");
+
+
 const loader = new GLTFLoader();
+const listener = new THREE.AudioListener(); // Audio Handler
+const audioLoader = new THREE.AudioLoader();
+var dogMixer = new THREE.AnimationMixer(); // Dog Animation
+var fireMixer = new THREE.AnimationMixer(); // Fire Animation
+var manMixer = new THREE.AnimationMixer(); // Sitting Man Animation
+var venomMixer = new THREE.AnimationMixer(); // Venom Animation
+const clock = new THREE.Clock();
+const loadingManager = new THREE.LoadingManager(); // Loading Screen
+
+const audioParameters = {
+  speakerVolume: 1,
+  boatVolume: 1,
+};
 
 let clouds = [];
-class cloud {
-  constructor(x, y, z,scale,target) {
-    loader.load("./models/cloud.glb", (gltf) => {
-      scene.add(gltf.scene);  
-      clouds.push(gltf.scene);
-      gltf.scene.scale.set(scale,scale,scale);
-      gltf.scene.position.set(x, y, z);
 
-  
+
+class Venom{
+  constructor(x,y,z)
+  {
+    
+   
+  loader.load(
+  "./models/venom.glb",
+   (gltf) => {
+    this.model = gltf.scene;
+    this.model.position.set(x,y,z);
+    this.model.rotation.set(0,90,0);
+    this.model.scale.set(3,3,3)
+    scene.add(this.model);
+    
+
+    // Animating Venom
+    venomMixer = new THREE.AnimationMixer(this.model);
+    const clips = gltf.animations;
+
+      if (clips.length > 0) {
+        const action = venomMixer.clipAction(clips[0]);
+        action.play();
+      }
     });
   }
 }
 
-init();
-animate();
+class Throne{
+  constructor(x,y,z)
+  {
 
+  loader.load(
+  "./models/throne.glb",
+   (gltf) => {
+    this.model = gltf.scene;
+    this.model.position.set(x,y,z);
+    this.model.scale.set(20,20,20)
+    scene.add(this.model);
+  })
+}
+}
+    
+ class SittingMan{
+  constructor(x,y,z)
+  {
+    
+  loader.load(
+  "./models/sittingMan.glb",
+   (gltf) => {
+    this.model = gltf.scene;
+    this.model.position.set(x,y,z);
+    this.model.scale.set(10,10,10)
+    scene.add(this.model);
+
+    // Animating the man
+    manMixer = new THREE.AnimationMixer(this.model);
+    const clips = gltf.animations;
+
+      if (clips.length > 0) {
+        const action = manMixer.clipAction(clips[0]);
+        action.play();
+      }
+    });
+  }
+}
+class Speaker{
+  constructor(x,y,z)
+  { 
+    loader.load("./models/speaker.glb",(gltf) =>{
+      this.model = gltf.scene;
+      this.model.scale.set(5, 5, 5);
+      this.model.position.set(x,y,z)
+      this.speaker = this.model
+
+      speakerSound = new THREE.PositionalAudio(listener);
+      const loader = new THREE.AudioLoader();
+      loader.load("sounds/GaldinQuay.mp3", (buffer) => {
+        speakerSound.setBuffer(buffer);
+        speakerSound.setVolume(initialSpeakerVolume);
+        speakerSound.setRefDistance(2);
+        speakerSound.setLoop(true);
+        speakerSound.play();
+      });
+      this.speaker.add(speakerSound)
+        
+      scene.add(this.model);
+    });
+  }
+
+  updateSpeakerVolume(volume) {
+    speakerSound.setVolume(volume);
+  }
+}
+class Fire{
+  constructor(x,y,z)
+  {
+  loader.load(
+  "./models/fire.glb",
+   (gltf) => {
+    this.model = gltf.scene;
+    this.model.position.set(x,y,z);
+    this.model.scale.set(6,6,6)
+    scene.add(this.model);
+
+    // Animating the fire
+    fireMixer = new THREE.AnimationMixer(this.model);
+    const clips = gltf.animations;
+
+      if (clips.length > 0) {
+        const action = fireMixer.clipAction(clips[0]);
+        action.play();
+      }
+    });
+
+    //adding point light to the fire
+    const pointLight = new THREE.PointLight(0xffDD00, 200, 500,1.2);
+    pointLight.position.set(x,y+70,z);
+    pointLight.castShadow=true
+    scene.add(pointLight);
+  }
+}
+
+class Dog{
+  constructor(x,y,z)
+  {
+  loader.load(
+  "./models/dog.glb",
+   (gltf) => {
+    this.model = gltf.scene;
+    this.model.position.set(x,y,z);
+    this.model.scale.set(0.1,0.1,0.1)
+    this.model.castShadow=true;
+    this.model.receiveShadow=true;
+
+    scene.add(this.model);
+
+    // Animating the Dog
+    dogMixer = new THREE.AnimationMixer(this.model);
+    const clips = gltf.animations;
+
+      if (clips.length > 0) {
+        const action = dogMixer.clipAction(clips[0]);
+        action.play();
+      }
+    });
+  }
+}
+class Jotaro{
+  
+    constructor(x,y,z)
+    {
+    loader.load(
+    "./models/jojo_st.glb",
+    (gltf) => {
+      this.model = gltf.scene;
+      this.model.scale.set(0.4, 0.4, 0.4);
+      this.model.position.set(x,y,z);
+      this.model.castShadow=true;
+      this.model.receiveShadow=true;
+
+      scene.add(this.model);
+      jojo_model = this.model;
+    },
+    undefined,
+    function (error) {
+      console.error(error);
+    }
+  );
+    }
+}
+class Yacht{
+  constructor(x,y,z)
+  { 
+    loader.load("./models/yacht.glb",(gltf) =>{
+      this.model = gltf.scene;
+      this.model.scale.set(15,15,15);
+      this.model.position.set(x,y,z)
+      this.model.rotation.set(0,180,0)
+      this.yacht = this.model
+      scene.add(this.model);
+
+    });
+  }
+}
+
+class Boat{
+  constructor(x,y,z)
+  { 
+    loader.load("./models/boat.glb",(gltf) =>{
+      this.model = gltf.scene;
+      this.model.scale.set(15, 15, 15);
+      this.model.position.set(x,y,z)
+      this.boat = this.model
+      boatSound = new THREE.PositionalAudio(listener)
+      const loader = new THREE.AudioLoader();
+      loader.load("sounds/boat.mp3", (buffer) => {
+        boatSound.setBuffer(buffer);
+        boatSound.setVolume(initialBoatVolume);
+        boatSound.setRefDistance(10);
+        boatSound.setLoop(true);
+        boatSound.play();
+      });
+      this.boat.add(boatSound)
+        
+      scene.add(this.model);
+    });
+  }
+  update() {
+    if (this.boat) {
+      // Update boat's poisition
+      this.boat.position.z -= 1;
+    }
+  }
+
+  updateBoatVolume(volume) {
+    boatSound.setVolume(volume);
+  }
+}
+class Cloud {
+  constructor(x, y, z, scale, target) {
+    this.model = null;
+
+    loader.load("./models/cloud.glb", (gltf) => {
+      this.model = gltf.scene;
+      scene.add(this.model);  
+      clouds.push(this.model);
+      this.model.scale.set(scale, scale, scale);
+      this.model.position.set(x, y, z);
+
+      this.changeColor(0xffffff);
+    });
+  }
+
+  changeColor(colorValue) {
+    if (this.model) {
+      this.model.traverse((o) => {
+        if (o.isMesh) {
+          const newMaterial = new THREE.MeshStandardMaterial({
+            color: colorValue,
+          });
+          o.material = newMaterial;
+        }
+      });
+    }
+  }
+}
+class GrassyIsland{
+  constructor(x,y,z)
+  { 
+    loader.load("./models/grassyIsland.glb",(gltf) =>{
+      this.model = gltf.scene;
+      this.model.scale.set(14,14,14)
+
+      this.model.position.set(x,y,z)
+      this.grassyIsland = this.model
+      scene.add(this.model);
+    });
+  }
+  update() {}
+}
+class Island{
+  constructor(x,y,z)
+  { 
+    loader.load("./models/tropical_island.glb",(gltf) =>{
+      this.model = gltf.scene;
+      this.model.position.set(x,y,z)
+      this.island = this.model
+      scene.traverse((object) => {
+            if (object.isMesh ) {
+                object.receiveShadow = true; 
+                object.castShadow = true; 
+            }
+        });
+      scene.add(this.model);
+    });
+  }
+  update() {}
+}
+class Patrick {
+  constructor(x, y, z, target) {
+    loader.load("./models/patrick_star.glb", (gltf) => {
+      this.model = gltf.scene;
+      scene.add(this.model);
+      this.model.scale.set(10,10,10);
+      this.model.position.set(x, y, z);
+      this.patrick = this.model;
+    });
+  }
+}
+
+let container_elems=[]
 function init() {
   container = document.getElementById("container");
 
   // Renderer
 
   renderer = new THREE.WebGLRenderer();
+  // Update renderer settings
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+  renderer.antialias = true;
+
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.5;
-  container.appendChild(renderer.domElement);
-
+  container_elems.push(renderer.domElement)
   // Scene
 
   scene = new THREE.Scene();
@@ -55,8 +360,8 @@ function init() {
     1,
     20000
   );
-  camera.position.set(30, 30, 100);
-
+  camera.position.set(0, 40, 150);
+  camera.add(listener);
   // Sun
 
   sun = new THREE.Vector3();
@@ -129,6 +434,20 @@ function init() {
 
   updateSun();
 
+  // Ambient Ocean Audio
+
+  const oceanSound = new THREE.Audio(listener);
+
+  audioLoader.load("sounds/ambient.mp3", (buffer) => {
+    oceanSound.setBuffer(buffer);
+    oceanSound.setLoop(true);
+    oceanSound.setVolume(0.2);
+  oceanSound.play();
+
+  });
+
+  //
+
   // Adding Middle Box
 
   const geometry = new THREE.BoxGeometry(30, 30, 30);
@@ -142,47 +461,54 @@ function init() {
   mesh.receiveShadow = true;
   scene.add(mesh);
 
-  //adding jotaro stuff
-
-
-
-  loader.load(
-    "./models/jojo_st.glb",
-    function (gltf) {
-      gltf.scene.scale.set(0.4, 0.4, 0.4);
-      gltf.scene.position.set(0, 1, 0);
-      gltf.scene.castShadow=true;
-      gltf.scene.receiveShadow=true;
-
-      scene.add(gltf.scene);
-      jojo_model = gltf.scene;
-    },
-    undefined,
-    function (error) {
-      console.error(error);
-    }
-  );
   // Orbit Controls
 
-  controls = new OrbitControls(camera, renderer.domElement);
+  controls = new OrbitControls(camera,renderer.domElement,window);
   controls.maxPolarAngle = Math.PI * 0.495;
   controls.target.set(0, 10, 0);
-  controls.minDistance = 40.0;
-  controls.maxDistance = 200.0;
+  controls.minDistance = 40;
+  controls.maxDistance = 500.0;
   controls.update();
 
   // Stats
 
   stats = new Stats();
-  container.appendChild(stats.dom);
+  container_elems.push(stats.dom);
+
+  // Models Initialization [START]
+
+  jotaro = new Jotaro(0, 1, 0);
+  staticYacht = new Yacht(420, -5, -45);
+  animatedBoat = new Boat(-600, -15, -90);
+  Island = new Island(340, -15, -200);
+  grassyIsland = new GrassyIsland(-400, 3, -200)
+  patrick = new Patrick(50, 0, 380);
+  dog = new Dog(320, 5, -70);
+  fire = new Fire(200, -10, -100);
+  man = new SittingMan(301.5, 3, -70);
+  throne = new Throne(300, 2, -70);
+  speakers = new Speaker(285, 2, -70);
+  venom = new Venom(-350,3,-130)
+
+  // Models Initialization [END]
 
   // GUI
 
   const gui = new GUI();
 
   gui.add(parameters, "azimuth", -180, 180, 0.1).onChange(updateSun);
+  var volume = gui.addFolder("Volume Controls");
+  volume
+    .add(audioParameters, "speakerVolume", 0, 100)
+    .name("Speaker Volume")
+    .onChange(updateSpeakerVolume);
+  volume
+    .add(audioParameters, "boatVolume", 0, 100)
+    .name("Boat Volume")
+    .onChange(updateBoatVolume);
 
   window.addEventListener("resize", onWindowResize);
+  
 }
 
 function onWindowResize() {
@@ -195,7 +521,12 @@ function onWindowResize() {
 function animate(time) {
   requestAnimationFrame(animate);
   if (jojo_model) jojo_model.rotation.y += 0.01;
+  animatedBoat.update();
   render();
+  dogMixer.update(clock.getDelta());
+  fireMixer.update(clock.getDelta() + 0.01);
+  manMixer.update(clock.getDelta() + 0.02);
+  venomMixer.update(clock.getDelta() + 0.03)
   stats.update();
   animateClouds();
 }
@@ -253,7 +584,6 @@ function renderCup() {
   cupBodyMesh.name = "cupBody";
   cup.add(cupBodyMesh);
 
-
   /*****************************************************
    *   BOTTOM                                             *
    *****************************************************/
@@ -309,28 +639,21 @@ function gameInit() {
   ball.position.y = 15 + 1; // half box height (30) + half the height of the ball (radius = 1)
   scene.add(ball);
 
-  // Update renderer settings
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
-  renderer.antialias = true;
 
   // Enable shadows for objects
   cups.forEach((cup) => (cup.castShadow = true));
   ball.castShadow = true;
 }
 
-gameInit();
-
-
 // generateClouds function
-function generateClouds(){
-  for(let i = 0; i < 30; i++){
+function generateClouds() {
+  for (let i = 0; i < 8; i++) {
     let x = Math.random() * 500 - 250;
-    let y = Math.random() * 200 + 50;  
+    let y = Math.random() * 30 + 150;
     let z = Math.random() * 500 - 250;
-    const scale = Math.random() * 1 + 1;
-    const single_cloud = new cloud(x,y,z,scale);
-  } 
+    const scale = Math.random() * 10 + 2;
+    const single_cloud = new Cloud(x, y, z, scale);
+  }
 }
 // animateClouds function
 function animateClouds() {
@@ -345,9 +668,6 @@ function animateClouds() {
     }
   });
 }
-generateClouds();
-
-
 
 let positions = [-8, 0, 8]; // Left, Middle, Right positions on the X-axis
 let isSwitching = false;
@@ -364,7 +684,6 @@ let ballRevealed = false;
 
 let ballUnderCupIndex = 1; // Index of the cup hiding the ball
 let winningCupIndex = 1; // Index of the cup the user guesses
-ball.position.x = 0;
 
 let revealStartTime, revealEndTime;
 let isRevealing = false;
@@ -376,7 +695,6 @@ function animateGame() {
   rayCaster.setFromCamera(mouse, camera);
   renderer.render(scene, camera);
 }
-renderer.setAnimationLoop(animateGame);
 
 function revealBall() {
   ballRevealed = true;
@@ -517,22 +835,32 @@ function positionToIndex(position) {
   return position == 8 ? 2 : position == 0 ? 1 : 0;
 }
 
+// Function to update speaker's volume
+function updateSpeakerVolume() {
+  speakers.updateSpeakerVolume(audioParameters.speakerVolume);
+}
+// Function to update boat's volume
+function updateBoatVolume() {
+  animatedBoat.updateBoatVolume(audioParameters.boatVolume);
+}
+
 document.addEventListener("click", function (e) {
-  if(isSwitching || ballRevealed) return;
+  if (isSwitching || ballRevealed) return;
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
   rayCaster.setFromCamera(mouse, camera);
 
-  const intersects = rayCaster.intersectObjects( cups );
+  const intersects = rayCaster.intersectObjects(cups);
 
   if (intersects.length == 0) return;
 
-  const cup = intersects[0].object.type == "Mesh" ?
-              intersects[0].object.parent.parent :
-              intersects[0].object.name == "cupBody" ?
-              intersects[0].object.parent :
-              intersects[0].object;
-      
+  const cup =
+    intersects[0].object.type == "Mesh"
+      ? intersects[0].object.parent.parent
+      : intersects[0].object.name == "cupBody"
+      ? intersects[0].object.parent
+      : intersects[0].object;
+
   let clickCupPosition = Math.round(cup.position.x);
   let clickedCupIndex = positionToIndex(clickCupPosition);
   console.log(clickedCupIndex);
@@ -548,6 +876,8 @@ document.addEventListener("click", function (e) {
   }, 2000);
 
   if (isCorrect) {
+    currentScore++;
+    score.innerText = "Score : " + currentScore
     console.log("Correct guess!");
     revealBall();
   } else {
@@ -556,6 +886,73 @@ document.addEventListener("click", function (e) {
   }
 });
 
-// Start the game by revealing the ball
-revealBall();
-animateGame();
+// Usage
+
+let button = document.getElementById("playButton");
+let playcontainer = document.getElementById("playcontainer");
+let loading_div = document.getElementById("loading");
+button.addEventListener("click", function () {
+  playcontainer.style.display = "none";
+  loading_div.style.visibility = "visible";
+  let rndrr=init()
+  gameInit();
+  generateClouds();
+  renderer.setAnimationLoop(animateGame);
+  animate();
+  // Start the game by revealing the ball
+  revealBall();
+  animateGame();
+  setTimeout(() => {
+  loading_div.style.display = "none";
+  for (let elem of container_elems)
+    container.appendChild(elem);
+  }, 3000);
+  
+});
+
+
+// let cameraSpeed = 0;
+// let cameraAcceleration = 0.4;
+// let keys=['KeyW','KeyS','KeyA','KeyD'];
+// const cameraMaxSpeed = 10;
+
+// window.addEventListener('keydown', (event)=> {
+//   const keyCode = event.code;
+//   console.log(keyCode)
+//   console.log(keys)
+//   if (keys.includes(keyCode) ){
+//   console.log(`key ${event.code} presseddown`)
+//   console.log(cameraSpeed)
+//   if(cameraSpeed<cameraMaxSpeed)
+//     cameraSpeed += cameraAcceleration;
+//   switch (keyCode) {
+//       case 'KeyW': 
+//           console.log('moving for ')
+//           camera.translateZ(-cameraSpeed);
+//           break;
+//       case 'KeyS':
+//           camera.translateZ(cameraSpeed); 
+//           break;
+//       case 'KeyA':
+//           camera.translateX(-cameraSpeed);
+//           break;
+//       case 'KeyD':
+//           camera.translateX(cameraSpeed);
+//           break;
+
+
+//       default:
+//           break;
+//   }
+//   controls.update();
+
+//   }
+// });
+// window.addEventListener('keyup', (event)=> {
+//   console.log(`key ${event.code} pressedup`)
+//   const keyCode = event.code;
+//   if (keys.includes(keyCode) ){
+//     cameraSpeed = 0;
+//   controls.update();
+
+// }});
