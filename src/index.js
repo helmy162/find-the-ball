@@ -10,6 +10,8 @@ import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import * as THREE from "three";
+const cupTextureSrc="images/cup_texture.jpg"
+const waterNormals="images/waternormals.jpg"
 const root = ReactDOM.createRoot(document.getElementById("root"));
 function Test(){
   
@@ -23,7 +25,7 @@ let patrick, dog,grassyIsland,venom;
 let fire, man, throne, speakers;
 let jojo_model = false;
 let speakerSound;
-let initialSpeakerVolume = 1;
+let initialSpeakerVolume = 15;
 let initialBoatVolume = 1;
 let currentScore = 0
 let score = document.getElementById("score");
@@ -40,7 +42,7 @@ const clock = new THREE.Clock();
 const loadingManager = new THREE.LoadingManager(); // Loading Screen
 
 const audioParameters = {
-  speakerVolume: 1,
+  speakerVolume: 15,
   boatVolume: 1,
 };
 
@@ -51,10 +53,10 @@ class Venom{
   constructor(x,y,z)
   {
     
-   
+    
   loader.load(
   "./models/venom.glb",
-   (gltf) => {
+    (gltf) => {
     this.model = gltf.scene;
     this.model.position.set(x,y,z);
     this.model.rotation.set(0,90,0);
@@ -80,7 +82,7 @@ class Throne{
 
   loader.load(
   "./models/throne.glb",
-   (gltf) => {
+    (gltf) => {
     this.model = gltf.scene;
     this.model.position.set(x,y,z);
     this.model.scale.set(20,20,20)
@@ -89,13 +91,13 @@ class Throne{
 }
 }
     
- class SittingMan{
+  class SittingMan{
   constructor(x,y,z)
   {
     
   loader.load(
   "./models/sittingMan.glb",
-   (gltf) => {
+    (gltf) => {
     this.model = gltf.scene;
     this.model.position.set(x,y,z);
     this.model.scale.set(10,10,10)
@@ -123,7 +125,7 @@ class Speaker{
 
       speakerSound = new THREE.PositionalAudio(listener);
       const loader = new THREE.AudioLoader();
-      loader.load("sounds/GaldinQuay.mp3", (buffer) => {
+      loader.load("sounds/jojo.mp3", (buffer) => {
         speakerSound.setBuffer(buffer);
         speakerSound.setVolume(initialSpeakerVolume);
         speakerSound.setRefDistance(2);
@@ -145,7 +147,7 @@ class Fire{
   {
   loader.load(
   "./models/fire.glb",
-   (gltf) => {
+    (gltf) => {
     this.model = gltf.scene;
     this.model.position.set(x,y,z);
     this.model.scale.set(6,6,6)
@@ -174,7 +176,7 @@ class Dog{
   {
   loader.load(
   "./models/dog.glb",
-   (gltf) => {
+    (gltf) => {
     this.model = gltf.scene;
     this.model.position.set(x,y,z);
     this.model.scale.set(0.1,0.1,0.1)
@@ -377,7 +379,7 @@ function init() {
     textureWidth: 512,
     textureHeight: 512,
     waterNormals: new THREE.TextureLoader().load(
-      "images/waternormals.jpg",
+      waterNormals,
       function (texture) {
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       }
@@ -568,7 +570,7 @@ function renderCup() {
   });
   cupBodyMaterial.name = "cupBodyMaterial";
 
-  const cupTexture = new THREE.TextureLoader().load("images/cup.jpg");
+  const cupTexture = new THREE.TextureLoader().load(cupTextureSrc);
 
   const cupBodyMaterialTexture = new THREE.MeshBasicMaterial({
     map: cupTexture,
@@ -579,7 +581,6 @@ function renderCup() {
   cupBodyMaterials.push(cupBodyMaterial);
   cupBodyMaterials.push(cupBodyMaterialTexture);
 
-  //cupBodyMaterial.vertexColors = THREE.FaceColors;
 
   const cupBodyMesh = SceneUtils.createMultiMaterialObject(
     cupBodyGeometry,
@@ -890,7 +891,7 @@ document.addEventListener("click", function (e) {
   }
 });
 
-// Usage
+
 
 let button = document.getElementById("playButton");
 let playcontainer = document.getElementById("playcontainer");
@@ -903,7 +904,6 @@ button.addEventListener("click", function () {
   generateClouds();
   renderer.setAnimationLoop(animateGame);
   animate();
-  // Start the game by revealing the ball
   revealBall();
   animateGame();
   setTimeout(() => {
