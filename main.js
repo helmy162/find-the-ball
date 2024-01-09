@@ -153,6 +153,12 @@ class Fire{
         action.play();
       }
     });
+
+    //adding point light to the fire
+    const pointLight = new THREE.PointLight(0xffDD00, 200, 500,1.2);
+    pointLight.position.set(x,y+70,z);
+    pointLight.castShadow=true
+    scene.add(pointLight);
   }
 }
 
@@ -301,6 +307,12 @@ class Island{
       this.model = gltf.scene;
       this.model.position.set(x,y,z)
       this.island = this.model
+      scene.traverse((object) => {
+            if (object.isMesh ) {
+                object.receiveShadow = true; 
+                object.castShadow = true; 
+            }
+        });
       scene.add(this.model);
     });
   }
@@ -325,6 +337,11 @@ function init() {
   // Renderer
 
   renderer = new THREE.WebGLRenderer();
+  // Update renderer settings
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+  renderer.antialias = true;
+
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -619,10 +636,6 @@ function gameInit() {
   ball.position.y = 15 + 1; // half box height (30) + half the height of the ball (radius = 1)
   scene.add(ball);
 
-  // Update renderer settings
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
-  renderer.antialias = true;
 
   // Enable shadows for objects
   cups.forEach((cup) => (cup.castShadow = true));
