@@ -921,6 +921,8 @@ root.render(
   <div id="container"></div>
   <div id="loading"><p>Loading... it may take a while</p></div>
   <div id="playcontainer"><button id="playButton">Start</button></div>
+  <h1 id="score" class="title">Score : 0</h1>
+
   <div id="guessResult" class="guess-result"></div>
   <Test/>
 
