@@ -15,7 +15,7 @@ let camera, scene, renderer;
 let controls, water, sun, mesh;
 let jotaro;
 let staticYacht, animatedBoat, boatSound;
-let patrick, dog;
+let patrick, dog,grassyIsland,venom;
 let fire, man, throne, speakers;
 let jojo_model = false;
 let speakerSound;
@@ -28,6 +28,7 @@ const audioLoader = new THREE.AudioLoader();
 var dogMixer = new THREE.AnimationMixer(); // Dog Animation
 var fireMixer = new THREE.AnimationMixer(); // Fire Animation
 var manMixer = new THREE.AnimationMixer(); // Sitting Man Animation
+var venomMixer = new THREE.AnimationMixer(); // Venom Animation
 const clock = new THREE.Clock();
 const loadingManager = new THREE.LoadingManager(); // Loading Screen
 
@@ -37,6 +38,34 @@ const audioParameters = {
 };
 
 let clouds = [];
+
+
+class Venom{
+  constructor(x,y,z)
+  {
+    
+   
+  loader.load(
+  "./models/venom.glb",
+   (gltf) => {
+    this.model = gltf.scene;
+    this.model.position.set(x,y,z);
+    this.model.rotation.set(0,90,0);
+    this.model.scale.set(3,3,3)
+    scene.add(this.model);
+    
+
+    // Animating Venom
+    venomMixer = new THREE.AnimationMixer(this.model);
+    const clips = gltf.animations;
+
+      if (clips.length > 0) {
+        const action = venomMixer.clipAction(clips[0]);
+        action.play();
+      }
+    });
+  }
+}
 
 class Throne{
   constructor(x,y,z)
@@ -200,11 +229,11 @@ class Boat{
       this.boat = this.model
       boatSound = new THREE.PositionalAudio(listener)
       const loader = new THREE.AudioLoader();
-      loader.load("sounds/ali.mp3", (buffer) => {
+      loader.load("sounds/boat.mp3", (buffer) => {
         boatSound.setBuffer(buffer);
         boatSound.setVolume(initialBoatVolume);
-        boatSound.setRefDistance(2);
-        boatSound.setLoop(false);
+        boatSound.setRefDistance(10);
+        boatSound.setLoop(true);
         boatSound.play();
       });
       this.boat.add(boatSound)
@@ -250,6 +279,20 @@ class Cloud {
       });
     }
   }
+}
+class GrassyIsland{
+  constructor(x,y,z)
+  { 
+    loader.load("./models/grassyIsland.glb",(gltf) =>{
+      this.model = gltf.scene;
+      this.model.scale.set(14,14,14)
+
+      this.model.position.set(x,y,z)
+      this.grassyIsland = this.model
+      scene.add(this.model);
+    });
+  }
+  update() {}
 }
 class Island{
   constructor(x,y,z)
@@ -418,12 +461,14 @@ function init() {
   staticYacht = new Yacht(420, -5, -45);
   animatedBoat = new Boat(-600, -15, -90);
   Island = new Island(340, -15, -200);
+  grassyIsland = new GrassyIsland(-400, 3, -200)
   patrick = new Patrick(50, 0, 380);
   dog = new Dog(320, 5, -70);
   fire = new Fire(200, -10, -100);
   man = new SittingMan(301.5, 3, -70);
   throne = new Throne(300, 2, -70);
   speakers = new Speaker(285, 2, -70);
+  venom = new Venom(-350,3,-130)
 
   // Models Initialization [END]
 
@@ -461,6 +506,7 @@ function animate(time) {
   dogMixer.update(clock.getDelta());
   fireMixer.update(clock.getDelta() + 0.01);
   manMixer.update(clock.getDelta() + 0.02);
+  venomMixer.update(clock.getDelta() + 0.03)
   stats.update();
   animateClouds();
 }
