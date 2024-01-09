@@ -21,6 +21,9 @@ let jojo_model = false;
 let speakerSound;
 let initialSpeakerVolume = 1;
 let initialBoatVolume = 1;
+let currentScore = 0
+let score = document.getElementById("score");
+
 
 const loader = new GLTFLoader();
 const listener = new THREE.AudioListener(); // Audio Handler
@@ -873,6 +876,8 @@ document.addEventListener("click", function (e) {
   }, 2000);
 
   if (isCorrect) {
+    currentScore++;
+    score.innerText = "Score : " + currentScore
     console.log("Correct guess!");
     revealBall();
   } else {

@@ -48,3 +48,12 @@
     border-radius: 10px;
     z-index: 10;
 }
+
+#score{
+    color:white;
+    z-index: 2;
+    position: absolute;
+    font-size:2rem;
+    top: 50%;
+    transform: translate(30%, 1300%);
+}
