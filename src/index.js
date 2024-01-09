@@ -910,7 +910,7 @@ button.addEventListener("click", function () {
   loading_div.style.display = "none";
   for (let elem of container_elems)
     container.appendChild(elem);
-  }, 30000);
+  }, 60000);
   
 });
 }, []);
@@ -919,7 +919,7 @@ return <></>;
 root.render(
   <body>
   <div id="container"></div>
-  <div id="loading"><p>Loading... in might take a while</p></div>
+  <div id="loading"><p>Loading... it may take a while</p></div>
   <div id="playcontainer"><button id="playButton">Start</button></div>
   <div id="guessResult" class="guess-result"></div>
   <Test/>
