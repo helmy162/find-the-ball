@@ -14,7 +14,7 @@ const cupTextureSrc="images/cup.jpg"
 const waterNormals="images/waternormals.jpg"
 const root = ReactDOM.createRoot(document.getElementById("root"));
 function Test(){
-  
+//mesa
 useEffect(() => {
   let container, stats;
 let camera, scene, renderer;
